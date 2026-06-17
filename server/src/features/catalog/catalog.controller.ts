@@ -30,4 +30,41 @@ export class CatalogController {
       res.status(400).json({ message: error.message });
     }
   };
+
+  updateItem = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const id = req.params.id;
+      if (!id || Array.isArray(id)) {
+        res.status(400).json({ message: 'ID inválido.' });
+        return;
+      }
+      const dto: CreateCatalogDto = req.body;
+      const updatedItem = await this.catalogService.updateItem(id, dto);
+      if (!updatedItem) {
+        res.status(404).json({ message: 'Elemento no encontrado.' });
+        return;
+      }
+      res.status(200).json(updatedItem);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  };
+
+  deleteItem = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const id = req.params.id;
+      if (!id || Array.isArray(id)) {
+        res.status(400).json({ message: 'ID inválido.' });
+        return;
+      }
+      const deleted = await this.catalogService.deleteItem(id);
+      if (!deleted) {
+        res.status(404).json({ message: 'Elemento no encontrado.' });
+        return;
+      }
+      res.status(200).json({ message: 'Elemento eliminado correctamente.' });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  };
 }
