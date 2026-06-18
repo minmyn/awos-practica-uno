@@ -1,41 +1,51 @@
-import { type Request, type Response } from 'express';
+import { type Request, type Response, type NextFunction } from 'express';
 import { AuthService } from './auth.service.js';
+import { BadRequestError } from '../../infra/errors/specific.errors.js';
 import type { RegisterRequestDto } from './dtos/register.request.js';
 import type { LoginRequestDto } from './dtos/login.request.js';
-import type { AuthResponseDto } from './dtos/auth.response.js';
 
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  register = async (req: Request, res: Response): Promise<void> => {
+  register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const dto: RegisterRequestDto = req.body;
 
-      if (!dto.fullName || !dto.username || !dto.email || !dto.password) {
-        res.status(400).json({ message: 'Todos los campos (fullName, username, email, password) son requeridos.' });
-        return;
+      if (!dto.name || !dto.username || !dto.email || !dto.password) {
+        throw new BadRequestError(
+          'La estructura de la petición contiene errores de sintaxis o parámetros ausentes.',
+          { 
+            invalidFields: ['name', 'username', 'email', 'password'].filter(f => !req.body[f]),
+            expectedType: 'string'
+          }
+        );
       }
 
-      const response: AuthResponseDto = await this.authService.register(dto);
+      const response = await this.authService.register(dto);
       res.status(201).json(response);
-    } catch (error: any) {
-      res.status(400).json({ message: error.message });
+    } catch (error) {
+      next(error);
     }
   };
 
-  login = async (req: Request, res: Response): Promise<void> => {
+  login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const dto: LoginRequestDto = req.body;
 
       if (!dto.username || !dto.password) {
-        res.status(400).json({ message: 'Username y password son requeridos.' });
-        return;
+        throw new BadRequestError(
+          'La estructura de la petición contiene errores de sintaxis o parámetros ausentes.',
+          { 
+            invalidFields: ['username', 'password'].filter(f => !req.body[f]),
+            expectedType: 'string'
+          }
+        );
       }
 
-      const response: AuthResponseDto = await this.authService.login(dto);
+      const response = await this.authService.login(dto);
       res.status(200).json(response);
-    } catch (error: any) {
-      res.status(401).json({ message: error.message });
+    } catch (error) {
+      next(error);
     }
   };
 }

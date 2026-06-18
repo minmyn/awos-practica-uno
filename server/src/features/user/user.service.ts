@@ -1,10 +1,21 @@
 import { UserRepository } from './user.repository.js';
 import type { UserResponseDto } from './dtos/user.response.js';
 import type { UserEntity } from './entities/user.entity.js';
+import { NotFoundError } from '../../infra/errors/specific.errors.js';
 
 export class UserService {
   constructor(private userRepository: UserRepository) {}
 
+  async getUserProfile(id: string): Promise<UserResponseDto> {
+    const user = await this.userRepository.findById(id);
+    if (!user) {
+      throw new NotFoundError('El usuario solicitado no existe en el catálogo o fue removido lógicamente.', {
+        searchedId: id
+      });
+    }
+    return this.toResponseDto(user);
+  }
+  
   async getAllUsers(): Promise<UserResponseDto[]> {
     const users = await this.userRepository.findAll();
     return users.map(user => this.toResponseDto(user));
