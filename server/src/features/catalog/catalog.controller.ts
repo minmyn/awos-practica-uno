@@ -1,70 +1,110 @@
-import { type Request, type Response } from 'express';
-import { CatalogService } from './catalog.service.js';
-import type { CreateCatalogDto } from './dtos/create-catalog.dto.js';
-import type { CatalogResponseDto } from './dtos/catalog-response.dto.js';
+import { type Request, type Response, type NextFunction } from 'express';
+import { CategoryService } from './catalog.service.js';
+import { BadRequestError } from '../../infra/errors/specific.errors.js';
+import type { CreateCategoryDto } from './dtos/create-catalog.dto.js';
 
-export class CatalogController {
-  constructor(private catalogService: CatalogService) {}
+export class CategoryController {
+  constructor(private categoryService: CategoryService) {}
 
-  getItems = async (_req: Request, res: Response): Promise<void> => {
+  getCategories = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const items: CatalogResponseDto[] = await this.catalogService.getAllItems();
-      res.status(200).json(items);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
-  };
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
 
-  createItem = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const dto: CreateCatalogDto = req.body;
+      if (isNaN(page) || isNaN(limit)) {
+        throw new BadRequestError(
+          'La estructura de la petición contiene errores de sintaxis o parámetros ausentes.',
+          {
+            invalidQueryParam: isNaN(limit) ? 'limit' : 'page',
+            expectedType: 'integer',
+            receivedValue: isNaN(limit) ? req.query.limit : req.query.page
+          }
+        );
+      }
+
+      const allCategories = await this.categoryService.getAllCategories();
       
-      if (!dto.name) {
-        res.status(400).json({ message: 'El nombre es obligatorio.' });
-        return;
-      }
+      const total = allCategories.length;
+      const totalPages = Math.ceil(total / limit) || 1;
+      const startIndex = (page - 1) * limit;
+      const paginatedData = allCategories.slice(startIndex, startIndex + limit);
 
-      const newItem = await this.catalogService.createItem(dto);
-      res.status(201).json(newItem);
-    } catch (error: any) {
-      res.status(400).json({ message: error.message });
+      res.status(200).json({
+        data: paginatedData,
+        pagination: { 
+          page,
+          limit,
+          total,
+          totalPages
+        }
+      });
+    } catch (error) {
+      next(error);
     }
   };
 
-  updateItem = async (req: Request, res: Response): Promise<void> => {
+  createCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const id = req.params.id;
-      if (!id || Array.isArray(id)) {
-        res.status(400).json({ message: 'ID inválido.' });
-        return;
+      const dto: CreateCategoryDto = req.body;
+      
+      if (!dto || !dto.name) {
+        throw new BadRequestError(
+          'La estructura de la petición contiene errores de sintaxis o parámetros ausentes.',
+          {
+            invalidFields: ['name'].filter(f => !req.body?.[f]),
+            expectedType: 'string'
+          }
+        );
       }
-      const dto: CreateCatalogDto = req.body;
-      const updatedItem = await this.catalogService.updateItem(id, dto);
-      if (!updatedItem) {
-        res.status(404).json({ message: 'Elemento no encontrado.' });
-        return;
-      }
-      res.status(200).json(updatedItem);
-    } catch (error: any) {
-      res.status(400).json({ message: error.message });
+
+      const newCategory = await this.categoryService.createCategory(dto);
+      res.status(201).json(newCategory);
+    } catch (error) {
+      next(error);
     }
   };
 
-  deleteItem = async (req: Request, res: Response): Promise<void> => {
+  updateCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const id = req.params.id;
-      if (!id || Array.isArray(id)) {
-        res.status(400).json({ message: 'ID inválido.' });
-        return;
+      const { id } = req.params;
+      const dto: CreateCategoryDto = req.body;
+
+      if (!id || id === ':id' || id === 'undefined') {
+        throw new BadRequestError(
+          'La estructura de la petición contiene errores de sintaxis o parámetros ausentes.',
+          { invalidQueryParam: 'id', expectedType: 'string/UUID', receivedValue: id }
+        );
       }
-      const deleted = await this.catalogService.deleteItem(id);
-      if (!deleted) {
-        res.status(404).json({ message: 'Elemento no encontrado.' });
-        return;
+
+      if (!dto || Object.keys(dto).length === 0 || !dto.name) {
+        throw new BadRequestError(
+          'La estructura de la petición contiene errores de sintaxis o parámetros ausentes.',
+          { body: 'Debe enviar el campo name para actualizar.' }
+        );
       }
-      res.status(200).json({ message: 'Elemento eliminado correctamente.' });
-    } catch (error: any) {
-      res.status(400).json({ message: error.message });
+
+      const updatedCategory = await this.categoryService.updateCategory(String(id), dto);
+      res.status(200).json(updatedCategory);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  deleteCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      if (!id || id === ':id' || id === 'undefined') {
+        throw new BadRequestError(
+          'La estructura de la petición contiene errores de sintaxis o parámetros ausentes.',
+          { invalidQueryParam: 'id', expectedType: 'string/UUID', receivedValue: id }
+        );
+      }
+
+      await this.categoryService.deleteCategory(String(id));
+      res.status(204).send(); 
+    } catch (error) {
+      next(error);
     }
   };
 }

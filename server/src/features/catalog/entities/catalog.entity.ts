@@ -1,6 +1,4 @@
-export interface CatalogItemEntity {
+export interface CategoryEntity {
   id: string;
   name: string;
-  description: string;
-  price: number;
 }
