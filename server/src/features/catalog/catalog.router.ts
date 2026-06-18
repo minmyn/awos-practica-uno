@@ -11,5 +11,7 @@ const controller = new CatalogController(service);
 
 router.get('/', controller.getItems);
 router.post('/', controller.createItem);
+router.put('/:id', controller.updateItem);
+router.delete('/:id', controller.deleteItem);
 
 export const CatalogRouter = router;

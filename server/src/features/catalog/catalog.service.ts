@@ -24,4 +24,15 @@ export class CatalogService {
       name: entity.name,
     };
   }
+
+  async updateItem(id: string, dto: CreateCatalogDto): Promise<CatalogItemEntity | null> {
+    if (dto.price <= 0) {
+      throw new Error('El precio debe ser mayor a cero.');
+    }
+    return await this.catalogRepository.update(id, dto);
+  }
+
+  async deleteItem(id: string): Promise<boolean> {
+    return await this.catalogRepository.delete(id);
+  }
 }
