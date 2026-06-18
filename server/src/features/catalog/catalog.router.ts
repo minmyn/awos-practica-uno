@@ -1,17 +1,17 @@
 import { Router } from 'express';
-import { CatalogRepository } from './catalog.repository.js';
-import { CatalogService } from './catalog.service.js';
-import { CatalogController } from './catalog.controller.js';
+import { CategoryRepository } from './catalog.repository.js';
+import { CategoryService } from './catalog.service.js';
+import { CategoryController } from './catalog.controller.js';
 
 const router = Router();
 
-const repository = new CatalogRepository();
-const service = new CatalogService(repository);
-const controller = new CatalogController(service);
+const repository = new CategoryRepository();
+const service = new CategoryService(repository);
+const controller = new CategoryController(service);
 
-router.get('/', controller.getItems);
-router.post('/', controller.createItem);
-router.put('/:id', controller.updateItem);
-router.delete('/:id', controller.deleteItem);
+router.get('/', controller.getCategories);
+router.post('/', controller.createCategory);
+router.put('/:id', controller.updateCategory);
+router.delete('/:id', controller.deleteCategory);
 
-export const CatalogRouter = router;
+export const CategoryRouter = router;
