@@ -35,7 +35,6 @@ export class UserController {
     }
   };
 
-  // Mantenemos tu obtención por Path Parameter que configuramos antes
   getMe = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
@@ -51,7 +50,7 @@ export class UserController {
         );
       }
 
-      const profile = await this.userService.getUserProfile(id);
+      const profile = await this.userService.getUserProfile(String(id));
       res.status(200).json(profile);
     } catch (error) {
       next(error);
