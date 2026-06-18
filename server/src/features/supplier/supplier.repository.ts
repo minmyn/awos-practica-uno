@@ -8,7 +8,7 @@ export class SupplierRepository {
       const idNum = index + 1;
       return {
         id: crypto.randomUUID(),
-        name: `Proveedor de Prueba N°${idNum}`,
+        name: `Proveedor ${idNum}`,
         phone: `55500000${idNum < 10 ? '0' + idNum : idNum}`,
         zipCode: `100${idNum}`
       };

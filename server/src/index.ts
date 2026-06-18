@@ -13,7 +13,7 @@ app.use(express.json());
 app.use('/api/v1/categories', CategoryRouter);
 app.use('/api/v1/suppliers', SupplierRouter);
 app.use('/api/v1/auth', AuthRouter);
-app.use('/api/v1/user', UserRouter);
+app.use('/api/v1/users', UserRouter);
 
 app.use(errorHandler);
 
