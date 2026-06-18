@@ -4,5 +4,5 @@ export interface UpdateProductDto {
   minStock?: number;
   inStock?: number;
   barcode?: string;
-  categoryId?: string;
+  categoryName?: string;
 }

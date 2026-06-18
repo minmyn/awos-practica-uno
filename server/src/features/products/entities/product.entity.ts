@@ -1,3 +1,5 @@
+import type { CategoryEntity } from '../../catalog/entities/catalog.entity.js';
+
 export interface ProductEntity {
   id: string;
   name: string;
@@ -5,6 +7,6 @@ export interface ProductEntity {
   minStock: number;
   inStock: number;
   barcode: string;
-  categoryId: string;
+  category: CategoryEntity;
   active: boolean;
 }

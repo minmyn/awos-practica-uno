@@ -2,9 +2,10 @@ export interface ProductResponseDto {
   id: string;
   name: string;
   price: number;
+
   minStock: number;
   inStock: number;
   barcode: string;
-  categoryId: string;
+  categoryName: string;
   stockStatus: 'OK' | 'LOW_STOCK';
 }

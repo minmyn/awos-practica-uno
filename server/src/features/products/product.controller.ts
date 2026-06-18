@@ -1,125 +1,103 @@
-import { type Request, type Response } from 'express';
+import { type Request, type Response, type NextFunction } from 'express';
 import { ProductService } from './product.service.js';
+import { BadRequestError } from '../../infra/errors/specific.errors.js';
 import type { CreateProductDto } from './dtos/create-product.dto.js';
 import type { UpdateProductDto } from './dtos/update-product.dto.js';
 
 export class ProductController {
   constructor(private productService: ProductService) {}
 
-  getProducts = async (req: Request, res: Response): Promise<void> => {
+  getProducts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const search = req.query.search as string | undefined;
-      const data = await this.productService.getProducts(search);
+      const pageStr = req.query.page as string || '1';
+      const limitStr = req.query.limit as string || '10';
+
+      const page = parseInt(pageStr, 10);
+      const limit = parseInt(limitStr, 10);
+
+      if (isNaN(page) || page <= 0) {
+        throw new BadRequestError('La estructura de la petición contiene errores de sintaxis o parámetros ausentes.', {
+          invalidQueryParam: 'page',
+          expectedType: 'integer',
+          receivedValue: pageStr
+        });
+      }
+      if (isNaN(limit) || limit <= 0) {
+        throw new BadRequestError('La estructura de la petición contiene errores de sintaxis o parámetros ausentes.', {
+          invalidQueryParam: 'limit',
+          expectedType: 'integer',
+          receivedValue: limitStr
+        });
+      }
+
+      const allProducts = await this.productService.getProducts(search);
       
+      const total = allProducts.length;
+      const totalPages = Math.ceil(total / limit);
+      const startIndex = (page - 1) * limit;
+      const paginatedData = allProducts.slice(startIndex, startIndex + limit);
+
       res.status(200).json({
-        data,
+        data: paginatedData,
         meta: {
-          total: data.length
+          page,
+          limit,
+          total,
+          totalPages
         }
       });
-
-    } catch (error: any) {
-      res.status(500).json({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Ocurrió un error inesperado.',
-        details: { error: error.message }
-      });
+    } catch (error) {
+      next(error);
     }
   };
 
-  getProductById = async (req: Request, res: Response): Promise<void> => {
+  getProductById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
-      if (typeof id !== 'string') {
-        res.status(400).json({ 
-            code: 'BAD_REQUEST_STRUCTURE', 
-            message: 'ID inválido.' 
-        });
-        return;
-      }
-
-      const product = await this.productService.getProductById(id);
+      const product = await this.productService.getProductById(String(id));
       res.status(200).json(product);
-    } catch (error: any) {
-      if (error.message === 'PRODUCT_NOT_FOUND') {
-        res.status(404).json({
-          code: 'ARTICLE_NOT_FOUND',
-          message: 'El artículo solicitado no existe o fue removido lógicamente.',
-          details: { searchedId: req.params.id }
-        });
-        return;
-      }
-      res.status(500).json({ code: 'SERVER_ERROR', message: error.message });
+    } catch (error) {
+      next(error);
     }
   };
 
-  createProduct = async (req: Request, res: Response): Promise<void> => {
+  createProduct = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const dto: CreateProductDto = req.body;
 
-      if (!dto.name || dto.price === undefined || dto.minStock === undefined || !dto.barcode || !dto.categoryId) {
-        res.status(400).json({
-          code: 'BAD_REQUEST_STRUCTURE',
-          message: 'Todos los campos obligatorios (name, price, minStock, barcode, categoryId) son requeridos.'
+      if (!dto.name || dto.price === undefined || !dto.categoryName) {
+        throw new BadRequestError('La estructura de la petición contiene errores de sintaxis o parámetros ausentes.', {
+          invalidFields: ['name', 'price', 'categoryName'].filter(f => req.body[f] === undefined)
         });
-        return;
       }
 
       const newProduct = await this.productService.createProduct(dto);
       res.status(201).json(newProduct);
-    } catch (error: any) {
-      if (error.message === 'PRODUCT_ALREADY_EXISTS') {
-        res.status(409).json({
-          code: 'RESOURCE_ALREADY_EXISTS',
-          message: 'Conflicto de unicidad de datos en la persistencia del sistema.',
-          details: { conflictingField: 'name', conflictingValue: req.body.name }
-        });
-        return;
-      }
-      res.status(422).json({ 
-        code: 'UNPROCESSABLE_ENTITY', 
-        message: error.message });
+    } catch (error) {
+      next(error);
     }
   };
 
-  updateProduct = async (req: Request, res: Response): Promise<void> => {
+  updateProduct = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
       const dto: UpdateProductDto = req.body;
 
-      if (typeof id !== 'string') {
-        res.status(400).json({ 
-            code: 'BAD_REQUEST_STRUCTURE', 
-            message: 'ID inválido.' });
-        return;
-      }
-
-      const updated = await this.productService.updateProduct(id, dto);
+      const updated = await this.productService.updateProduct(String(id), dto);
       res.status(200).json(updated);
-    } catch (error: any) {
-      const status = error.message === 'PRODUCT_NOT_FOUND' ? 404 : 422;
-      res.status(status).json({
-        code: status === 404 ? 'ARTICLE_NOT_FOUND' : 'UNPROCESSABLE_ENTITY',
-        message: error.message
-      });
+    } catch (error) {
+      next(error);
     }
   };
 
-  deleteProduct = async (req: Request, res: Response): Promise<void> => {
+  deleteProduct = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
-      if (typeof id !== 'string') {
-        res.status(400).json({ code: 'BAD_REQUEST_STRUCTURE', message: 'ID inválido.' });
-        return;
-      }
-
-      await this.productService.removeProduct(id);
+      await this.productService.removeProduct(String(id));
       res.status(204).send();
-    } catch (error: any) {
-      res.status(404).json({
-        code: 'ARTICLE_NOT_FOUND',
-        message: 'El producto no existe o ya fue eliminado.'
-      });
+    } catch (error) {
+      next(error);
     }
   };
 }

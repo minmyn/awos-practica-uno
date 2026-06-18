@@ -1,9 +1,46 @@
+import crypto from 'crypto';
 import type { ProductEntity } from './entities/product.entity.js';
 import type { CreateProductDto } from './dtos/create-product.dto.js';
 import type { UpdateProductDto } from './dtos/update-product.dto.js';
+import { CategoryRepository } from '../catalog/catalog.repository.js';
+import type { CategoryEntity } from '../catalog/entities/catalog.entity.js';
 
 export class ProductRepository {
   private static products: ProductEntity[] = [];
+  private categoryRepo = new CategoryRepository();
+
+  constructor() {
+    if (ProductRepository.products.length === 0) {
+      this.initializeMockProducts();
+    }
+  }
+
+  private async initializeMockProducts() {
+    const catuni: CategoryEntity = { 
+      id: crypto.randomUUID(),
+      name: 'General' 
+    };
+
+    const nombresProductos = [
+      'Leche Entera 1L', 'Atún en Agua 140g', 'Detergente Multiusos 1kg', 'Refresco de Cola 2L',
+      'Pan de Caja Integras', 'Jabón de Tocador', 'Manzana Kilogramo', 'Frijol Negro Valle 1kg',
+      'Galletas de Chocolate', 'Crema Líquida 200ml', 'Sardina en Salsa de Tomate', 'Cloro Blanqueador 1L',
+      'Agua Mineral 600ml', 'Tostadas Horneadas 200g', 'Jamón de Pavo 250g'
+    ];
+
+    nombresProductos.forEach((name, index) => {
+      ProductRepository.products.push({
+        id: crypto.randomUUID(),
+        name,
+        price: parseFloat((Math.random() * 50 + 10).toFixed(2)),
+        minStock: 5,
+        inStock: Math.floor(Math.random() * 20) + 1,
+        barcode: `750102030${100 + index}`,
+        category: catuni, 
+        active: true
+      });
+    });
+  }
 
   async findAll(): Promise<ProductEntity[]> {
     return ProductRepository.products.filter(p => p.active);
@@ -22,6 +59,8 @@ export class ProductRepository {
   }
 
   async create(dto: CreateProductDto): Promise<ProductEntity> {
+    const category = await this.categoryRepo.findByName(dto.categoryName);
+    
     const newProduct: ProductEntity = {
       id: crypto.randomUUID(),
       name: dto.name,
@@ -29,7 +68,7 @@ export class ProductRepository {
       minStock: dto.minStock,
       inStock: dto.inStock || 0,
       barcode: dto.barcode,
-      categoryId: dto.categoryId,
+      category: category!,
       active: true
     };
     ProductRepository.products.push(newProduct);
@@ -45,7 +84,11 @@ export class ProductRepository {
     if (dto.minStock !== undefined) product.minStock = dto.minStock;
     if (dto.inStock !== undefined) product.inStock = dto.inStock;
     if (dto.barcode !== undefined) product.barcode = dto.barcode;
-    if (dto.categoryId !== undefined) product.categoryId = dto.categoryId;
+    
+    if (dto.categoryName !== undefined) {
+      const category = await this.categoryRepo.findById(dto.categoryName);
+      if (category) product.category = category;
+    }
 
     return product;
   }
