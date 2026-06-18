@@ -57,7 +57,7 @@ export class ProductController {
     try {
       const dto: CreateProductDto = req.body;
 
-      if (!dto.name || dto.price === undefined || dto.minStock === undefined || !dto.barcode || !dto.categoryId) {
+      if (!dto.name || dto.price === undefined) {
         res.status(400).json({
           code: 'BAD_REQUEST_STRUCTURE',
           message: 'Todos los campos obligatorios (name, price, minStock, barcode, categoryId) son requeridos.'

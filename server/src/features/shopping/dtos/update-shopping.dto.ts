@@ -1,4 +1,6 @@
 export interface UpdateShoppingDto {
-  productId?: string;
-  quantity?: number;
+  productName: string;
+  quantity: number;
+  bill: string;
+  supplierName: string;
 }

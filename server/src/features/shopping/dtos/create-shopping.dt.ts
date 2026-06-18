@@ -1,5 +1,6 @@
 export interface CreateShoppingDto {
-  productId: string;
+  productName: string;
   quantity: number;
-  userId?: string;
+  bill: string;
+  supplierName: string;
 }
