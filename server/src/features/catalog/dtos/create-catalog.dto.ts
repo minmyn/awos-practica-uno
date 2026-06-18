@@ -1,5 +1,3 @@
-export interface CreateCatalogDto {
+export interface CreateCategoryDto {
   name: string;
-  description: string;
-  price: number;
 }
