@@ -11,7 +11,11 @@ export class CatalogController {
       const items: CatalogResponseDto[] = await this.catalogService.getAllItems();
       res.status(200).json(items);
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      res.status(500).json({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Ocurrió un error inesperado.',
+        details: { error: error.message }
+      });
     }
   };
 
@@ -20,14 +24,20 @@ export class CatalogController {
       const dto: CreateCatalogDto = req.body;
       
       if (!dto.name) {
-        res.status(400).json({ message: 'El nombre es obligatorio.' });
+        res.status(400).json({
+          code: 'BAD_REQUEST_STRUCTURE',
+          message: 'El nombre es obligatorio.'
+        });
         return;
       }
 
       const newItem = await this.catalogService.createItem(dto);
       res.status(201).json(newItem);
     } catch (error: any) {
-      res.status(400).json({ message: error.message });
+      res.status(422).json({
+        code: 'UNPROCESSABLE_ENTITY',
+        message: error.message
+      });
     }
   };
 }
