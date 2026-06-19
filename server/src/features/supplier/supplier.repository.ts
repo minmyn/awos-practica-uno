@@ -3,10 +3,28 @@ import type { CreateSupplierDto } from './dtos/create-supplier.dto.js';
 import type { UpdateSupplierDto } from './dtos/update-supplier.dto.js';
 
 export class SupplierRepository {
-  private static suppliers: SupplierEntity[] = [];
+  private static suppliers: SupplierEntity[] = [
+    ...Array.from({ length: 5 }, (_, index) => {
+      const idNum = index + 1;
+      return {
+        id: crypto.randomUUID(),
+        name: `Proveedor${idNum}`,
+        phone: `55500000${idNum < 10 ? '0' + idNum : idNum}`,
+        zipCode: `100${idNum}`
+      };
+    })
+  ];
 
   async findAll(): Promise<SupplierEntity[]> {
     return SupplierRepository.suppliers;
+  }
+
+  async findById(id: string): Promise<SupplierEntity | null> {
+    return SupplierRepository.suppliers.find(s => s.id === id) || null;
+  }
+
+  async findByName(name: string): Promise<SupplierEntity | null> {
+    return SupplierRepository.suppliers.find(s => s.name.toLowerCase() === name.toLowerCase()) || null;
   }
 
   async create(dto: CreateSupplierDto): Promise<SupplierEntity> {
@@ -31,4 +49,11 @@ export class SupplierRepository {
     return supplier;
   }
 
+  async delete(id: string): Promise<boolean> {
+    const index = SupplierRepository.suppliers.findIndex(s => s.id === id);
+    if (index === -1) return false;
+    
+    SupplierRepository.suppliers.splice(index, 1);
+    return true;
+  }
 }

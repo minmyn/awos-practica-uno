@@ -10,8 +10,9 @@ const service = new SupplierService(repository);
 const controller = new SupplierController(service);
 
 router.get('/', controller.getSuppliers);
+router.get('/:id', controller.getSupplierById);
 router.post('/', controller.createSupplier);
-router.put('/:id', controller.updateSupplier);
-
+router.patch('/:id', controller.updateSupplier);
+router.delete('/:id', controller.deleteSupplier);
 
 export const SupplierRouter = router;

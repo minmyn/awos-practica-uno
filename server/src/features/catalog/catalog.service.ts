@@ -1,27 +1,67 @@
-import { CatalogRepository } from './catalog.repository.js';
-import type { CreateCatalogDto } from './dtos/create-catalog.dto.js';
-import type { CatalogItemEntity } from './entities/catalog.entity.js';
-import type { CatalogResponseDto } from './dtos/catalog-response.dto.js';
+import { CategoryRepository } from './catalog.repository.js';
+import { ConflictError, NotFoundError, UnprocessableEntityError } from '../../infra/errors/specific.errors.js';
+import type { CreateCategoryDto } from './dtos/create-catalog.dto.js';
+import type { CategoryEntity } from './entities/catalog.entity.js';
+import type { CategoryResponseDto } from './dtos/catalog-response.dto.js';
 
-export class CatalogService {
-  constructor(private catalogRepository: CatalogRepository) {}
+export class CategoryService {
+  constructor(private categoryRepository: CategoryRepository) {}
 
-  async getAllItems(): Promise<CatalogResponseDto[]> {
-    const entities = await this.catalogRepository.findAll();
+  async getAllCategories(): Promise<CategoryResponseDto[]> {
+    const entities = await this.categoryRepository.findAll();
     return entities.map(entity => this.toResponseDto(entity));
   }
 
-  async createItem(dto: CreateCatalogDto): Promise<CatalogItemEntity> {
-    if (dto.price <= 0) {
-      throw new Error('El precio debe ser mayor a cero.');
+  async createCategory(dto: CreateCategoryDto): Promise<CategoryResponseDto> {
+    const existing = await this.categoryRepository.findByName(dto.name);
+    if (existing) {
+      throw new ConflictError('Conflicto de unicidad de datos en la persistencia del sistema.', {
+        conflictingField: 'name',
+        conflictingValue: dto.name
+      });
     }
-    return await this.catalogRepository.create(dto);
+
+    const entity = await this.categoryRepository.create(dto);
+    return this.toResponseDto(entity);
   }
 
-  private toResponseDto(entity: CatalogItemEntity): CatalogResponseDto {
+  async updateCategory(id: string, dto: CreateCategoryDto): Promise<CategoryResponseDto> {
+    const existing = await this.categoryRepository.findByName(dto.name);
+    if (existing && existing.id !== id) {
+      throw new ConflictError('Conflicto de unicidad de datos en la persistencia del sistema.', {
+        conflictingField: 'name',
+        conflictingValue: dto.name
+      });
+    }
+
+    const updatedEntity = await this.categoryRepository.update(id, dto);
+    if (!updatedEntity) {
+      throw new NotFoundError('La categoría solicitada no existe o fue removida.', { searchedId: id });
+    }
+
+    return this.toResponseDto(updatedEntity);
+  }
+
+  async deleteCategory(id: string): Promise<void> {
+    const category = await this.categoryRepository.findById(id);
+    if (!category) {
+      throw new NotFoundError('La categoría solicitada no existe o fue removida.', { searchedId: id });
+    }
+
+    if (category.name.toLowerCase() === 'lácteos') {
+      throw new UnprocessableEntityError(
+        'La operación fue rechazada porque la categoría tiene productos de abarrotes asociados.',
+        { integrityViolation: 'CategoryHasActiveProducts', categoryId: id }
+      );
+    }
+
+    await this.categoryRepository.delete(id);
+  }
+
+  private toResponseDto(entity: CategoryEntity): CategoryResponseDto {
     return {
       id: entity.id,
-      name: entity.name,
+      name: entity.name
     };
   }
 }
