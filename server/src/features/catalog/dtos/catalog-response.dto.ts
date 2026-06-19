@@ -1,4 +1,4 @@
-export interface CatalogResponseDto {
+export interface CategoryResponseDto {
   id: string;
   name: string;
 }
