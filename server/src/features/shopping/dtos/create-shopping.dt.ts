@@ -1,6 +1,10 @@
-export interface CreateShoppingDto {
+export interface PurchaseItemDto {
   productName: string;
   quantity: number;
-  bill: string;
+}
+
+export interface CreatePurchaseDto {
   supplierName: string;
+  bill: string;
+  items: PurchaseItemDto[];
 }

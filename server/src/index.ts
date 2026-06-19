@@ -16,7 +16,7 @@ app.use('/api/v1/auth', AuthRouter);
 app.use('/api/v1/users', UserRouter);
 app.use('/api/v1/categories', CategoryRouter);
 app.use('/api/v1/products', ProductRouter);
-app.use('/api/v1/shopping', ShoppingRouter);
+app.use('/api/v1/purchase', ShoppingRouter);
 app.use('/api/v1/suppliers', SupplierRouter);
 
 app.use(errorHandler);

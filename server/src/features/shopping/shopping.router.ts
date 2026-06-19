@@ -1,12 +1,16 @@
 import { Router } from 'express';
-import { ShoppingController } from './shopping.controller.js';
+import { PurchaseRepository } from './shopping.repository.js';
+import { PurchaseService } from './shopping.service.js';
+import { PurchaseController} from './shopping.controller.js';
 
 const router = Router();
-const controller = new ShoppingController();
+const repository = new PurchaseRepository();
+const service = new PurchaseService(repository);
+const controller = new PurchaseController(service);
 
-router.post('/', controller.create);      
-router.get('/', controller.getAll);       
-router.get('/:id', controller.getById);   
-router.delete('/:id', controller.delete); 
+router.post('/', controller.createPurchase);      
+router.get('/', controller.getPurchases);       
+router.get('/:id', controller.getPurchaseById);   
+router.delete('/:id', controller.deletePurchase); 
 
 export const ShoppingRouter = router;

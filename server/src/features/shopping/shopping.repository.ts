@@ -1,32 +1,34 @@
-import type { ShoppingEntity } from './entities/shopping.entity.js';
+import type { PurchaseEntity } from './entities/shopping.entity.js';
 
-// Simularemos una base de datos en memoria dinámica. 
-// Si usas MySQL o PostgreSQL, aquí inyectas tu conexión/pool.
-const shoppingDatabase: ShoppingEntity[] = [];
+export class PurchaseRepository {
+  private static purchases: PurchaseEntity[] = [];
 
-export class ShoppingRepository {
-  
-  async create(shopping: ShoppingEntity): Promise<ShoppingEntity> {
-    shoppingDatabase.push(shopping);
-    return shopping;
+  async create(purchase: PurchaseEntity): Promise<PurchaseEntity> {
+    PurchaseRepository.purchases.push(purchase);
+    return purchase;
   }
 
-  async findAll(): Promise<ShoppingEntity[]> {
-    return [...shoppingDatabase];
+  async findAll(): Promise<PurchaseEntity[]> {
+    return PurchaseRepository.purchases.filter(p => p.active);
   }
 
-  async findByUserId(userId: string): Promise<ShoppingEntity[]> {
-    return shoppingDatabase.filter(item => item.userId === userId);
+  async findById(id: string): Promise<PurchaseEntity | null> {
+    const purchase = PurchaseRepository.purchases.find(p => p.id === id && p.active);
+    return purchase || null;
   }
 
-  async findById(id: string): Promise<ShoppingEntity | undefined> {
-    return shoppingDatabase.find(item => item.id === id);
+  async updateInvoice(id: string, invoiceNumber: string): Promise<PurchaseEntity | null> {
+    const purchase = PurchaseRepository.purchases.find(p => p.id === id && p.active);
+    if (!purchase) return null;
+    purchase.invoiceNumber = invoiceNumber;
+    return purchase;
   }
 
-  async delete(id: string): Promise<boolean> {
-    const index = shoppingDatabase.findIndex(item => item.id === id);
-    if (index === -1) return false;
-    shoppingDatabase.splice(index, 1);
+  async softDelete(id: string): Promise<boolean> {
+    const purchase = PurchaseRepository.purchases.find(p => p.id === id && p.active);
+    if (!purchase) return false;
+
+    purchase.active = false;
     return true;
   }
 }

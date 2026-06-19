@@ -1,7 +1,16 @@
-export interface ShoppingEntity {
-  id: string;
-  productId: string;
+import type { SupplierEntity } from '../../supplier/entities/supplier.entity.js';
+import type { ProductEntity } from '../../products/entities/product.entity.js';
+
+export interface PurchaseItemEntity {
+  product: ProductEntity;
   quantity: number;
-  userId?: string;     // Opcional: Para saber si lo compró el cliente (Juan Pérez) o el admin
-  createdAt: string;   // Fecha de creación del pedido en formato string/ISO
+}
+
+export interface PurchaseEntity {
+  id: string;
+  supplier: SupplierEntity;
+  invoiceNumber: string;
+  items: PurchaseItemEntity[];
+  createdAt: string;
+  active: boolean;
 }
