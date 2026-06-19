@@ -22,10 +22,7 @@ export class ProductRepository {
     };
 
     const nombresProductos = [
-      'Leche Entera 1L', 'Atún en Agua 140g', 'Detergente Multiusos 1kg', 'Refresco de Cola 2L',
-      'Pan de Caja Integras', 'Jabón de Tocador', 'Manzana Kilogramo', 'Frijol Negro Valle 1kg',
-      'Galletas de Chocolate', 'Crema Líquida 200ml', 'Sardina en Salsa de Tomate', 'Cloro Blanqueador 1L',
-      'Agua Mineral 600ml', 'Tostadas Horneadas 200g', 'Jamón de Pavo 250g'
+      'Leche Entera 1L', 'Atún en Agua 140g', 'Detergente Multiusos 1kg', 'Refresco de Cola 2L'
     ];
 
     nombresProductos.forEach((name, index) => {

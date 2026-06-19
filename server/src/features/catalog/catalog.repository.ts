@@ -3,7 +3,7 @@ import type { CreateCategoryDto } from './dtos/create-catalog.dto.js';
 
 export class CategoryRepository {
   private static categories: CategoryEntity[] = [
-    ...Array.from({ length: 15 }, (_, index) => {
+    ...Array.from({ length: 9 }, (_, index) => {
       const nombresAbarrotes = [
         'Lacteos',
         'Enlatados',
@@ -16,7 +16,7 @@ export class CategoryRepository {
       
       return {
         id: crypto.randomUUID(),
-        name: nombresAbarrotes[index] || `Categoria ${index + 1}`
+        name: nombresAbarrotes[index] || `Categoria${index + 1}`
       };
     })
   ];

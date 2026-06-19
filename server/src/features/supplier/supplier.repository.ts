@@ -4,11 +4,11 @@ import type { UpdateSupplierDto } from './dtos/update-supplier.dto.js';
 
 export class SupplierRepository {
   private static suppliers: SupplierEntity[] = [
-    ...Array.from({ length: 15 }, (_, index) => {
+    ...Array.from({ length: 5 }, (_, index) => {
       const idNum = index + 1;
       return {
         id: crypto.randomUUID(),
-        name: `Proveedor ${idNum}`,
+        name: `Proveedor${idNum}`,
         phone: `55500000${idNum < 10 ? '0' + idNum : idNum}`,
         zipCode: `100${idNum}`
       };

@@ -12,11 +12,11 @@ export class UserRepository {
       password: 'hashed_123'
     },
 
-    ...Array.from({ length: 15 }, (_, index) => {
+    ...Array.from({ length: 5 }, (_, index) => {
       const idNum = index + 1;
       return {
         id: crypto.randomUUID(),
-        fullName: `Cliente de Prueba N°${idNum}`,
+        fullName: `Cliente${idNum}`,
         username: `user_${idNum}`,
         email: `cliente${idNum}@abarrotes.com`,
         password: `hashed_pass${idNum}`
