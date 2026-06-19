@@ -10,5 +10,8 @@ const service = new UserService(repository);
 const controller = new UserController(service);
 
 router.get('/', controller.getUsers);
+router.get('/:id', controller.getUserById);
+router.patch('/:id', controller.updateUser);
+router.delete('/:id', controller.deleteUser);
 
 export const UserRouter = router;

@@ -1,4 +1,5 @@
 import type { UserEntity } from './entities/user.entity.js';
+import type { UpdateUserDto } from './dtos/update-user.dto.js';
 import type { RegisterRequestDto } from '../auth/dtos/register.request.js';
 
 export class UserRepository {
@@ -53,5 +54,25 @@ export class UserRepository {
     };
     UserRepository.users.push(newUser);
     return newUser;
+  }
+
+  async update(id: string, dto: UpdateUserDto): Promise<UserEntity | null> {
+    const user = UserRepository.users.find(u => u.id === id);
+    if (!user) return null;
+
+    if (dto.fullName !== undefined) user.fullName = dto.fullName;
+    if (dto.username !== undefined) user.username = dto.username;
+    if (dto.email !== undefined) user.email = dto.email;
+    if (dto.password !== undefined) user.password = dto.password;
+
+    return user;
+  }
+
+  async hardDelete(id: string): Promise<boolean> {
+    const index = UserRepository.users.findIndex(u => u.id === id);
+    if (index === -1) return false;
+
+    UserRepository.users.splice(index, 1);
+    return true;
   }
 }

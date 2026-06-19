@@ -2,6 +2,7 @@ import { type Request, type Response, type NextFunction } from 'express';
 import { UserService } from './user.service.js';
 import { BadRequestError } from '../../infra/errors/specific.errors.js';
 import type { UserResponseDto } from './dtos/user.response.js';
+import type { UpdateUserDto } from './dtos/update-user.dto.js';
 
 export class UserController {
   constructor(private userService: UserService) {}
@@ -10,7 +11,6 @@ export class UserController {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
-      const supplierId = req.query.supplierId as string;
 
       let data: UserResponseDto[] = await this.userService.getAllUsers();
 
@@ -35,23 +35,43 @@ export class UserController {
     }
   };
 
-  getMe = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getUserById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
+      const user = await this.userService.getUserById(String(id));
+      res.status(200).json(user);
+    } catch (error) {
+      next(error);
+    }
+  };
 
-      if (!id || id === ':id' || id === 'undefined') {
+  updateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const dto: UpdateUserDto = req.body;
+
+      if (!dto || Object.keys(dto).length === 0) {
         throw new BadRequestError(
           'La estructura de la petición contiene errores de sintaxis o parámetros ausentes.',
           {
-            invalidQueryParam: 'id',
-            expectedType: 'string/UUID',
-            receivedValue: id
+            body: 'Debe enviar al menos un campo válido para actualizar (fullName, username, o email).'
           }
         );
       }
 
-      const profile = await this.userService.getUserProfile(String(id));
-      res.status(200).json(profile);
+      const updated = await this.userService.updateUser(String(id), dto);
+      res.status(200).json(updated);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  deleteUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      
+      await this.userService.removeUser(String(id));
+      res.status(204).send();
     } catch (error) {
       next(error);
     }
